@@ -200,3 +200,5 @@ Creer une VM debian dans virt-manager:
     - A ce stade le VXLAN est set statiquement, sans groupe. Les hosts peuvent à présent communiquer entre eux via le VXLAN. Pour vérifier:
         - depuis un host, ping l’autre
         - Sous gns3 cliquer sur un lien entre un routeur et le switch et cliquer sur “start capture” => lancer wireshark => filtrer sous ICMP pour mieux observer l’encapsulation des différents réseaux
+
+- Étapes de la partie 3
