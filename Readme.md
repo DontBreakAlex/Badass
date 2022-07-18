@@ -163,7 +163,7 @@ Creer une VM debian dans virt-manager:
 - sudo apt install spice-vdagent
 - To resize screen xrandr --output Virtual-0 --auto
 
-5. Etapes
+## 4. Etapes
 - Etapes de la partie 1
     - Creer une VM debian
     - [Suivre instructions pour debian buster](https://docs.gns3.com/docs/getting-started/installation/linux/)
@@ -202,3 +202,8 @@ Creer une VM debian dans virt-manager:
         - Sous gns3 cliquer sur un lien entre un routeur et le switch et cliquer sur “start capture” => lancer wireshark => filtrer sous ICMP pour mieux observer l’encapsulation des différents réseaux
 
 - Étapes de la partie 3
+    - [Ahmad Nadeem MVP](https://www.youtube.com/watch?v=Ek7kFDwUJBM)
+    - vtysh
+    - config t 
+    - ctrl-c ctrl-v FRRouting config file
+    - configure vxlan
