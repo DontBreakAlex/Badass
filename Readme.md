@@ -58,37 +58,6 @@ The purpose of this project is to deepen your knowledge of NetPractice. You will
 
     - For our verification a simple ping allows us to see that we can access all the machines through our RR using the VTEPs. We can see the VXLAN configured to 10 as well as our packets ICMP. We also see packets OSPF configured    
 
-
-### Expected dir struct
-
-find -maxdepth 2 -ls
-424242 4 drwxr-xr-x 6 wandre wil42 4096 sept. 17 23:42 .
-424242 4 drwxr-xr-x 3 wandre wil42 4096 sept. 17 23:42 ./P1
-424242 4 -rw-r--r-- 1 wandre wil42 XXXX sept. 17 23:42 ./P1/P1.gns3project
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P1/_wil-1_host
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P1/_wil-2
-424242 4 drwxr-xr-x 3 wandre wil42 4096 sept. 17 23:42 ./P2
-424242 4 -rw-r--r-- 1 wandre wil42 XXXX sept. 17 23:42 ./P2/P2.gns3project
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P2/wil-1_g
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P2/_wil-1_host
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P2/_wil-1_s
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P2/_wil-2_g
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P2/_wil-2_host
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P2/_wil-2_s
-424242 4 drwxr-xr-x 3 wandre wil42 4096 sept. 17 23:42 ./P3
-424242 4 -rw-r--r-- 2 wandre wil42 4096 sept. 17 23:42 ./P3/P3.gns3project
-424242 4 -rw-r--r-- 2 wandre wil42 4096 sept. 17 23:42 ./P3/_wil-1
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P3/_wil-1_host
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P3/_wil-2
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P3/_wil-2_host
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P3/_wil-3
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P3/_wil-3_host
-424242 4 -rw-r--r-- 2 wandre wil42 XXXX sept. 17 23:42 ./P3/_wil-4
-> file P3/P3.gns3project
-P3/P3.gns3project: Zip archive data, at least v2.0 to extract
-
-
-
 ## 2. Concepts & technos à comprendre
 
 
@@ -202,8 +171,23 @@ Creer une VM debian dans virt-manager:
         - Sous gns3 cliquer sur un lien entre un routeur et le switch et cliquer sur “start capture” => lancer wireshark => filtrer sous ICMP pour mieux observer l’encapsulation des différents réseaux
 
 - Étapes de la partie 3
-    - [Ahmad Nadeem MVP](https://www.youtube.com/watch?v=Ek7kFDwUJBM)
-    - vtysh
-    - config t 
-    - ctrl-c ctrl-v FRRouting config file
-    - configure vxlan
+	- Pourquoi pas d'implémentation MPLS ?
+		- MPLS est un protocole pour accélérer le trafic réseau, dans notre cas cela ajouterai en complexité sans utilité, un EVPN avec un VXLAN étant largement suffisant en l'état.
+	- Pour chaque routeur, créer un bridge br0 et un VXLAN vxlan10 comme dans la partie 2 => fait grâce au vxlan.sh 
+		- ce script est ajouté au script de lancement qui apparaît en CMD en entrée de l’image officielle Docker FRR qui nous sert a faire tourner nos routeurs
+		- Une seule différence ! Contrairement à la partie 2, les feuilles / VTEPS (endpoint VXLAN) c’est a dire les interfaces des routeurs reliés par le VXLAN sont déterminées / set dynamiquement et non de façon statique (on n’indique pas une adresse local et remote ni un group multicast)
+	- Lors de la première config des routeurs =
+		- ouvrir un auxiliary terminal
+		- vtysh -> message “Can’t open configuration file /etc/frr/vtysh.conf due to ‘No such fie or directory’. … ”
+			=> we’re in vtysh terminal (prompt changed from ‘/ #’ to ‘_aseo-4#’)
+		- type ‘conf t’ to enter config informations
+		- pour sauvegarder la config taper ‘do write’
+		- Ensuite, toujours sous vtysh taper :
+			- do sh ip route = voir les autres VTEP configurés
+			- do sh bgp summary = voir les routes entre le VTEP et le RR
+			- do sh bgp l2vpn evpn = lance le repérage des adresses mac des équipements et crée :
+				- une route de type 3 pour chaque VNI local,
+				- une route de type 2 pour chaque adresse MAC locale.
+		- Une fois la commande ‘do sh bgp l2vpn evpn’ lancée, une route entre tous les équipements est créée et l’adressage dynamique du VXLAN est effectué (attendre un peu - cela peut prendre un peu de temps). Les hosts peuvent à présent communiquer entre eux via le VXLAN. Pour vérifier:
+			- depuis un host, ping l’autre
+			- Sous gns3 cliquer sur un lien entre un routeur et le switch et cliquer sur “start capture” => lancer wireshark => filtrer sous ICMP pour mieux observer l’encapsulation des différents réseaux
